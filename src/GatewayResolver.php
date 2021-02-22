@@ -4,7 +4,7 @@ namespace Samyoosephi\Gateway;
 
 use Samyoosephi\Gateway\Irankish\Irankish;
 use Samyoosephi\Gateway\Parsian\Parsian;
-use Samyoosephi\Gateway\Paypal\Paypal;
+//use Samyoosephi\Gateway\Paypal\Paypal;
 use Samyoosephi\Gateway\Sadad\Sadad;
 use Samyoosephi\Gateway\Mellat\Mellat;
 use Samyoosephi\Gateway\Pasargad\Pasargad;
@@ -149,8 +149,8 @@ class GatewayResolver
             $name = Enum::SADAD;
         } elseif ($port InstanceOf Asanpardakht) {
             $name = Enum::ASANPARDAKHT;
-        } elseif ($port InstanceOf Paypal) {
-            $name = Enum::PAYPAL;
+        //} elseif ($port InstanceOf Paypal) {
+            //$name = Enum::PAYPAL;
         } elseif ($port InstanceOf Payir) {
             $name = Enum::PAYIR;
         } elseif ($port InstanceOf Pasargad) {

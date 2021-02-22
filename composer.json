@@ -28,7 +28,6 @@
     "ipay",
     "asan-pardakht",
     "pay-ir",
-    "paypal"
   ],
   "license": "MIT",
   "authors": [
@@ -50,8 +49,7 @@
     }
   ],
   "require": {
-    "nesbot/carbon": "*",
-    "paypal/rest-api-sdk-php": "*"
+    "nesbot/carbon": "*"
   },
   "autoload": {
     "psr-4": {
