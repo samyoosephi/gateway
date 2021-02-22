@@ -1,8 +1,8 @@
 <?php
 
-namespace Larabookir\Gateway\Payir;
+namespace Samyoosephi\Gateway\Payir;
 
-use Larabookir\Gateway\Exceptions\BankException;
+use Samyoosephi\Gateway\Exceptions\BankException;
 
 class PayirReceiveException extends BankException
 {

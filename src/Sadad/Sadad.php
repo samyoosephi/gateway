@@ -1,10 +1,12 @@
 <?php
 
-namespace Larabookir\Gateway\Sadad;
+namespace Samyoosephi\Gateway\Sadad;
 
+use Exception;
+use Illuminate\Support\Facades\Log;
 use SoapClient;
-use Larabookir\Gateway\PortAbstract;
-use Larabookir\Gateway\PortInterface;
+use Samyoosephi\Gateway\PortAbstract;
+use Samyoosephi\Gateway\PortInterface;
 
 class Sadad extends PortAbstract implements PortInterface
 {
@@ -31,7 +33,7 @@ class Sadad extends PortAbstract implements PortInterface
 		$this->amount = intval($amount);
 
 		return $this;
-	}
+    }
 
 	/**
 	 * {@inheritdoc}
@@ -48,9 +50,10 @@ class Sadad extends PortAbstract implements PortInterface
 	 */
 	public function redirect()
 	{
-		$form = $this->form;
+        return redirect()->to($this->form);
 
-		return \View::make('gateway::sadad-redirector')->with(compact('form'));
+		//$form = $this->form;
+		//return \View::make('gateway::sadad-redirector')->with(compact('form'));
 	}
 
 	/**
@@ -87,6 +90,25 @@ class Sadad extends PortAbstract implements PortInterface
 		return $this->makeCallback($this->callbackUrl, ['transaction_id' => $this->transactionId()]);
 	}
 
+    function encrypt_pkcs7($str, $key)
+    {
+        $key = base64_decode($key);
+        $ciphertext = OpenSSL_encrypt($str,"DES-EDE3", $key, OPENSSL_RAW_DATA);
+        return base64_encode($ciphertext);
+    }
+
+    function CallAPI($url, $data = false)
+    {
+        $curl = curl_init($url);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($curl, CURLOPT_POSTFIELDS,$data);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/json','Content-Length: ' . strlen($data)));
+        $result = curl_exec($curl);
+        curl_close($curl);
+        return $result;
+    }
+
 	/**
 	 * Send pay request to server
 	 *
@@ -101,32 +123,41 @@ class Sadad extends PortAbstract implements PortInterface
 		$this->form = '';
 
 		try {
-			$soap = new SoapClient($this->serverUrl);
+            $LocalDateTime=date("m/d/Y g:i:s a");
+            $TerminalId = $this->config->get('gateway.sadad.terminalId');
+            $MerchantId = $this->config->get('gateway.sadad.merchant');
+            $OrderId = $this->transactionId();
+            $Amount = $this->amount;
+            $key = $this->config->get('gateway.sadad.transactionKey');
+            $SignData = $this->encrypt_pkcs7("$TerminalId;$OrderId;$Amount","$key");
 
-			$response = $soap->PaymentUtility(
-				$this->config->get('gateway.sadad.merchant'),
-				$this->amount,
-				$this->transactionId(),
-				$this->config->get('gateway.sadad.transactionKey'),
-				$this->config->get('gateway.sadad.terminalId'),
-				$this->getCallback()
-			);
+            $data = [
+                'TerminalId' => $TerminalId,
+                'MerchantId' => $MerchantId,
+                'Amount'=>$Amount,
+                'SignData'=> $SignData,
+                'ReturnUrl' => $this->callbackUrl,
+                'LocalDateTime' => $LocalDateTime,
+                'OrderId' => $OrderId
+            ];
 
-		} catch (\SoapFault $e) {
+            $response = $this->CallAPI('https://sadad.shaparak.ir/vpg/api/v0/Request/PaymentRequest', json_encode($data));
+		} catch (Exception $e) {
 			$this->transactionFailed();
 			$this->newLog('SoapFault', $e->getMessage());
 			throw $e;
 		}
 
-		if (!isset($response['RequestKey']) || !isset($response['PaymentUtilityResult'])) {
-			$this->newLog(SadadResult::INVALID_RESPONSE_CODE, SadadResult::INVALID_RESPONSE_MESSAGE);
-			throw new SadadException(SadadResult::INVALID_RESPONSE_MESSAGE, SadadResult::INVALID_RESPONSE_CODE);
-		}
+        $arrres = json_decode($response);
+        if($arrres->ResCode != 0)
+        {
+            $this->newLog($arrres->ResCode, $arrres->Description);
+			throw new SadadException($arrres->Description, $arrres->ResCode);
+        }
 
-		$this->form = $response['PaymentUtilityResult'];
-
-		$this->refId = $response['RequestKey'];
-
+        $Token= $arrres->Token;
+        $this->form = "https://sadad.shaparak.ir/VPG/Purchase?Token=$Token";
+		//$this->refId = $Token;
 		$this->transactionSetRefId();
 	}
 
@@ -137,17 +168,22 @@ class Sadad extends PortAbstract implements PortInterface
 	 */
 	protected function verifyPayment()
 	{
-		try {
-			$soap = new SoapClient($this->serverUrl);
+        $key = $this->config->get('gateway.sadad.transactionKey');
+        $token = request()->token;
+        $OrderId = request()->OrderId;
+        $ResCode = request()->ResCode;
 
-			$result = $soap->CheckRequestStatusResult(
-				$this->transactionId(),
-				$this->config->get('gateway.sadad.merchant'),
-				$this->config->get('gateway.sadad.terminalId'),
-				$this->config->get('gateway.sadad.transactionKey'),
-				$this->refId(),
-				$this->amount
-			);
+        if ($ResCode != 0)
+            throw new SadadException("تراکنش نا موفق بود در صورت کسر مبلغ از حساب شما حداکثر پس از 72 ساعت مبلغ به حسابتان برمی گردد");
+
+		try {
+            $verifyData = [
+                'Token' => $token,
+                'SignData' => $this->encrypt_pkcs7($token,$key)
+            ];
+
+            $result = $this->CallAPI('https://sadad.shaparak.ir/vpg/api/v0/Advice/Verify', json_encode($verifyData));
+            $arrres=json_decode($result);
 
 		} catch (\SoapFault $e) {
 			$this->transactionFailed();
@@ -155,22 +191,24 @@ class Sadad extends PortAbstract implements PortInterface
 			throw $e;
 		}
 
-		if (empty($result) || !isset($result->AppStatusCode))
-			throw new SadadException('در دریافت اطلاعات از بانک خطایی رخ داده است.');
+        if (!in_array($arrres->ResCode, [-1, 0]))
+            throw new SadadException("تراکنش نا موفق بود در صورت کسر مبلغ از حساب شما حداکثر پس از 72 ساعت مبلغ به حسابتان برمی گردد");
 
-		$statusResult = strval($result->AppStatusCode);
-		$appStatus = strtolower($result->AppStatusDescription);
+		//if (empty($result) || !isset($result->AppStatusCode))
+		//	throw new SadadException('در دریافت اطلاعات از بانک خطایی رخ داده است.');
 
-		$message = $this->getMessage($statusResult, $appStatus);
+		$res = strval($arrres->ResCode);
+		$description = strtolower($arrres->Description);
+		$this->newLog($res, $description);
 
-		$this->newLog($statusResult, $message['fa']);
-
-		if ($statusResult != 0 || $appStatus !== 'commit') {
+		if ($res != 0) {
 			$this->transactionFailed();
-			throw new SadadException($message['fa'], $statusResult);
+			throw new SadadException($description, $res);
 		}
-		$this->trackingCode = $result->TraceNo;
-		$this->cardNumber = $result->CustomerCardNumber;
+
+        $this->ref_id = $arrres->RetrivalRefNo;
+		$this->trackingCode = $arrres->SystemTraceNo;
+		//$this->cardNumber = $arrres->CustomerCardNumber;
 		$this->transactionSucceed();
 	}
 
@@ -197,7 +235,7 @@ class Sadad extends PortAbstract implements PortInterface
 			'en' => 'Unknown Error',
 			'retry' => false
 		);
-		
+
 
 		return $result;
 	}

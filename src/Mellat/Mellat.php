@@ -1,13 +1,14 @@
 <?php
 
-namespace Larabookir\Gateway\Mellat;
+namespace Samyoosephi\Gateway\Mellat;
 
 use DateTime;
 use Illuminate\Support\Facades\Request;
-use Larabookir\Gateway\Enum;
+use Illuminate\Support\Facades\View;
+use Samyoosephi\Gateway\Enum;
 use SoapClient;
-use Larabookir\Gateway\PortAbstract;
-use Larabookir\Gateway\PortInterface;
+use Samyoosephi\Gateway\PortAbstract;
+use Samyoosephi\Gateway\PortInterface;
 
 class Mellat extends PortAbstract implements PortInterface
 {
@@ -45,7 +46,7 @@ class Mellat extends PortAbstract implements PortInterface
 	{
 		$refId = $this->refId;
 
-        return \View::make('gateway::mellat-redirector')->with(compact('refId'));
+        return View::make('gateway::mellat-redirector')->with(compact('refId'));
 	}
 
 	/**

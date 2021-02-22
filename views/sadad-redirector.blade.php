@@ -1,10 +1,6 @@
 <html>
+    <meta http-equiv="refresh" content="0; url={!! $form !!}" />
     <body>
-        {!! $form !!}
-        <br />
-        <script type="text/javascript">
-            document.getElementById('paymentUTLfrm').submit();
-        </script>
-        </form>
+        Redirect
     </body>
 </html>

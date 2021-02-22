@@ -1,8 +1,8 @@
 <?php
 
-namespace Larabookir\Gateway\Mellat;
+namespace Samyoosephi\Gateway\Mellat;
 
-use Larabookir\Gateway\Exceptions\BankException;
+use Samyoosephi\Gateway\Exceptions\BankException;
 
 class MellatException extends BankException
 {

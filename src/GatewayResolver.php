@@ -1,22 +1,23 @@
 <?php
 
-namespace Larabookir\Gateway;
+namespace Samyoosephi\Gateway;
 
-use Larabookir\Gateway\Irankish\Irankish;
-use Larabookir\Gateway\Parsian\Parsian;
-use Larabookir\Gateway\Paypal\Paypal;
-use Larabookir\Gateway\Sadad\Sadad;
-use Larabookir\Gateway\Mellat\Mellat;
-use Larabookir\Gateway\Pasargad\Pasargad;
-use Larabookir\Gateway\Saman\Saman;
-use Larabookir\Gateway\Asanpardakht\Asanpardakht;
-use Larabookir\Gateway\Zarinpal\Zarinpal;
-use Larabookir\Gateway\Payir\Payir;
-use Larabookir\Gateway\Exceptions\RetryException;
-use Larabookir\Gateway\Exceptions\PortNotFoundException;
-use Larabookir\Gateway\Exceptions\InvalidRequestException;
-use Larabookir\Gateway\Exceptions\NotFoundTransactionException;
+use Samyoosephi\Gateway\Irankish\Irankish;
+use Samyoosephi\Gateway\Parsian\Parsian;
+use Samyoosephi\Gateway\Paypal\Paypal;
+use Samyoosephi\Gateway\Sadad\Sadad;
+use Samyoosephi\Gateway\Mellat\Mellat;
+use Samyoosephi\Gateway\Pasargad\Pasargad;
+use Samyoosephi\Gateway\Saman\Saman;
+use Samyoosephi\Gateway\Asanpardakht\Asanpardakht;
+use Samyoosephi\Gateway\Zarinpal\Zarinpal;
+use Samyoosephi\Gateway\Payir\Payir;
+use Samyoosephi\Gateway\Exceptions\RetryException;
+use Samyoosephi\Gateway\Exceptions\PortNotFoundException;
+use Samyoosephi\Gateway\Exceptions\InvalidRequestException;
+use Samyoosephi\Gateway\Exceptions\NotFoundTransactionException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class GatewayResolver
 {
@@ -98,11 +99,19 @@ class GatewayResolver
 	 */
 	public function verify()
 	{
-		if (!$this->request->has('transaction_id') && !$this->request->has('iN'))
+		if (!$this->request->has('transaction_id') &&
+            !$this->request->has('iN') &&
+            !$this->request->has('OrderId') &&
+            !$this->request->has('invoice'))
 			throw new InvalidRequestException;
+
 		if ($this->request->has('transaction_id')) {
 			$id = $this->request->get('transaction_id');
-		}else {
+        } elseif ($this->request->has('OrderId')) {
+            $id = $this->request->get('OrderId');
+		} elseif ($this->request->has('invoice')) {
+            $id = $this->request->get('invoice');
+        } else {
 			$id = $this->request->get('iN');
 		}
 

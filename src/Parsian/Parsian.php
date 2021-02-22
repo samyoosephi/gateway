@@ -1,12 +1,12 @@
 <?php
 
-namespace Larabookir\Gateway\Parsian;
+namespace Samyoosephi\Gateway\Parsian;
 
 use Illuminate\Support\Facades\Request;
 use Illuminate\Validation\Rules\In;
 use SoapClient;
-use Larabookir\Gateway\PortAbstract;
-use Larabookir\Gateway\PortInterface;
+use Samyoosephi\Gateway\PortAbstract;
+use Samyoosephi\Gateway\PortInterface;
 
 class Parsian extends PortAbstract implements PortInterface
 {

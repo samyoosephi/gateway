@@ -1,13 +1,13 @@
 <?php
 
-namespace Larabookir\Gateway\Irankish;
+namespace Samyoosephi\Gateway\Irankish;
 
 use DateTime;
 use Illuminate\Support\Facades\Request;
-use Larabookir\Gateway\Enum;
+use Samyoosephi\Gateway\Enum;
 use SoapClient;
-use Larabookir\Gateway\PortAbstract;
-use Larabookir\Gateway\PortInterface;
+use Samyoosephi\Gateway\PortAbstract;
+use Samyoosephi\Gateway\PortInterface;
 
 class Irankish extends PortAbstract implements PortInterface
 {

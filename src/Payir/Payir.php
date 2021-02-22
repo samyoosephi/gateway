@@ -1,10 +1,10 @@
 <?php
-namespace Larabookir\Gateway\Payir;
+namespace Samyoosephi\Gateway\Payir;
 
 use Illuminate\Support\Facades\Request;
-use Larabookir\Gateway\Enum;
-use Larabookir\Gateway\PortAbstract;
-use Larabookir\Gateway\PortInterface;
+use Samyoosephi\Gateway\Enum;
+use Samyoosephi\Gateway\PortAbstract;
+use Samyoosephi\Gateway\PortInterface;
 
 class Payir extends PortAbstract implements PortInterface
 {

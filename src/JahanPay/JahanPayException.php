@@ -1,8 +1,8 @@
 <?php
 
-namespace Larabookir\Gateway\JahanPay;
+namespace Samyoosephi\Gateway\JahanPay;
 
-use Larabookir\Gateway\Exceptions\BankException;
+use Samyoosephi\Gateway\Exceptions\BankException;
 
 class JahanPayException extends BankException
 {

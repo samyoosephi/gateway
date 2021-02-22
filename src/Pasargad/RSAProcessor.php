@@ -1,5 +1,5 @@
 <?php
-namespace Larabookir\Gateway\Pasargad;
+namespace Samyoosephi\Gateway\Pasargad;
 
 class RSAProcessor
 {
