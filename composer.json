@@ -1,6 +1,6 @@
 {
-  "name": "larabook/gateway",
-  "homepage": "https://github.com/larabook/gateway",
+  "name": "samyoosephi/gateway",
+  "homepage": "https://github.com/samyoosephi/gateway",
   "description": "A Laravel package for connecting to all Iraninan payment  gateways",
   "keywords": [
     "laravel",
@@ -43,6 +43,10 @@
     {
       "name": "Amir Khorsandi",
       "email": "Khorsandi@me.com"
+    },
+	{
+      "name": "Sam Yoosephi",
+      "email": "samyoosephi@gmail.com"
     }
   ],
   "require": {
